@@ -4,6 +4,7 @@ import sqlite3
 import sys
 
 def print_rows(rows):
+    # helper to print query responses
     if not rows:
         print("No results found.")
         return
@@ -12,6 +13,7 @@ def print_rows(rows):
         print(row)
 
 def get_int(prompt, default=None):
+    # helper to process user input to an integer
     value = input(prompt).strip()
 
     if value == "":
@@ -24,7 +26,21 @@ def get_int(prompt, default=None):
         return get_int(prompt, default) # a little recursion as a treat ( ͡° ͜ʖ ͡°)
 
 class App:
+    """
+    Application class for the disaster analysis REPL.
+
+    This class manages the database connection, runs SQL queries,
+    displays query results, and creates charts from the disaster data.
+    """
+
     def __init__(self, dbpath):
+        """
+        Initialize the application with the path to the SQLite database.
+
+        Validates the SQLite connection and sets the
+        applications min and max year.
+        """
+
         self.dbpath = dbpath
         self.min_year = 0
         self.max_year = 0
@@ -40,9 +56,18 @@ class App:
             raise RuntimeError(f"Could not connect to database: {e}")
 
     def connect(self):
+        """
+        Convenience wrapper for sqlite connection
+        """
+
         return sqlite3.connect(self.dbpath)
 
     def disasters_by_year(self, start_year=None, end_year=None):
+        """
+        Return the number of disaster declarations for each year
+        time sliced by start_year and end_year.
+        """
+
         query = """
         SELECT 
             fy_declared AS year,
@@ -57,6 +82,11 @@ class App:
             return conn.execute(query, (start_year, end_year)).fetchall()
 
     def disasters_by_state(self, start_year=None, end_year=None, limit=None):
+        """
+        Return disaster counts grouped by state, limited,
+        and time sliced by start_year and end_year.
+        """
+
         query = """
         SELECT 
             s.state_code,
@@ -73,6 +103,10 @@ class App:
             return conn.execute(query, (start_year, end_year, limit)).fetchall()
 
     def disasters_by_type(self, start_year=None, end_year=None):
+        """
+        Return disaster counts grouped by incident type.
+        """
+
         query = """
         SELECT 
             it.incident_type,
@@ -88,6 +122,11 @@ class App:
             return conn.execute(query, (start_year, end_year)).fetchall()
 
     def search_disasters(self, state=None, year=None, incident_type=None):
+        """
+        Search disaster declarations using optional state, year,
+        and incident_type filters.
+        """
+
         query = """
         SELECT
             d.disaster_id,
@@ -124,6 +163,10 @@ class App:
     
 
     def chart_disasters_by_year(self, start_year=None, end_year=None):
+        """
+        Generate a simple chart of time sliced disasters by year.
+        """
+
         rows = self.disasters_by_year(start_year, end_year)
 
         years = [row[0] for row in rows]
@@ -139,6 +182,10 @@ class App:
         plt.show()
 
     def chart_top_states(self, start_year=None, end_year=None, limit=None):
+        """
+        Generate a chart of the states with the most disasters.
+        """
+
         rows = self.disasters_by_state(start_year, end_year, limit)
 
         states = [row[0] for row in rows]
@@ -153,6 +200,11 @@ class App:
         plt.show()
 
     def db_year_range(self):
+        """
+        Convenience function to populate the application with
+        min and max years.
+        """
+
         query = """
         SELECT
             MIN(fy_declared),
@@ -164,6 +216,11 @@ class App:
             return conn.execute(query).fetchone()
 
     def REPL(self):
+        """
+        Run a Read Evaluate Print Loop(REPL) to allow iterative querying of disaster data.
+        The REPL displays a menu, asks the user to choose an option andperforms the appropriate action.
+        """
+
         helptext = """
 Disaster Analysis CLI
 
@@ -185,6 +242,7 @@ Disaster Analysis CLI
             selection = input("Choose an option: ").strip()
             match selection:
                 case "1":
+                    # Show disasters by year
                     start_year = get_int(startyeartext, self.min_year)
                     end_year = get_int(endyeartext, self.max_year)
 
@@ -196,6 +254,7 @@ Disaster Analysis CLI
                         print(f"{year} | {count}")
 
                 case "2":
+                    # Show top states by disaster count
                     start_year = get_int(startyeartext, self.min_year)
                     end_year = get_int(endyeartext, self.max_year)
                     limit = get_int(limittext, self.limit)
@@ -208,6 +267,7 @@ Disaster Analysis CLI
                         print(f"{state} | {count}")
 
                 case "3":
+                    # Show disasters by type
                     start_year = get_int(startyeartext, self.min_year)
                     end_year = get_int(endyeartext, self.max_year)
 
@@ -219,6 +279,7 @@ Disaster Analysis CLI
                         print(f"{incident_type} | {count}")
 
                 case "4":
+                    # Search disasters
                     state = input("State code [default all]: ").strip()
                     year = get_int("Year [default all]: ", None)
                     incident_type = input("Incident type [default all]: ").strip()
@@ -241,12 +302,14 @@ Disaster Analysis CLI
                         print(row)
 
                 case "5":
+                    # Chart disasters by year
                     start_year = get_int(startyeartext, self.min_year)
                     end_year = get_int(endyeartext, self.max_year)
 
                     self.chart_disasters_by_year(start_year, end_year)
 
                 case "6":
+                    # Chart top states
                     start_year = get_int(startyeartext, self.min_year)
                     end_year = get_int(endyeartext, self.max_year)
                     limit = get_int(limittext, self.limit)
@@ -254,10 +317,12 @@ Disaster Analysis CLI
                     self.chart_top_states(start_year, end_year, limit)
 
                 case "7":
+                    # Exit
                     print("Goodbye.")
                     break
 
                 case _:
+                    # Invalid choice
                     print("Invalid choice. Please choose 1-7.")
 
 def main(dbpath):
