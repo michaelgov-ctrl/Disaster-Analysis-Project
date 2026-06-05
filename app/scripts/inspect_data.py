@@ -3,7 +3,7 @@ import pandas as pd
 from pathlib import Path
 
 # Set the file path for the raw FEMA disaster data
-csv_path = "data/raw/DisasterDeclarationsSummaries.csv"
+csv_path = "DisasterDeclarationsSummaries.csv"
 
 # Read the FEMA CSV file into a pandas DataFrame
 df = pd.read_csv(csv_path)

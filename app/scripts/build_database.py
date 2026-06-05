@@ -4,7 +4,7 @@ import sqlite3
 from pathlib import Path
 
 # Set file paths for the raw FEMA data and the SQLite database
-csv_path = "data/raw/DisasterDeclarationsSummaries.csv"
+csv_path = "DisasterDeclarationsSummaries.csv"
 db_path = "disasters.db"
 
 # Read the FEMA CSV file into a pandas DataFrame
