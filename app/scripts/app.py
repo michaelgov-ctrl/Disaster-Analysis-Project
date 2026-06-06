@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 from pathlib import Path
 import sqlite3
-import sys
 
 def print_rows(rows):
     # helper to print query responses
@@ -325,11 +324,8 @@ Disaster Analysis CLI
                     # Invalid choice
                     print("Invalid choice. Please choose 1-7.")
 
-def main(dbpath):
-    App(dbpath).REPL()
+def main():
+    App(Path("disasters.db")).REPL()
 
 if __name__ == "__main__":
-    dbpath = Path("disasters.db")
-    if len(sys.argv) > 1:
-        dbpath = Path(sys.argv[1])
-    main(dbpath)
+    main()
